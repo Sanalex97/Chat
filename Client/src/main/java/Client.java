@@ -1,40 +1,52 @@
 import java.io.*;
 import java.net.Socket;
+import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Client {
-    private static final AtomicInteger count = new AtomicInteger(0);
 
     public static void main(String[] args) {
-        for (int i = 0; i < 5; i++) {
-            new Thread(() -> {
-                try (Socket socket = new Socket("localhost", getPort());
-                     BufferedWriter writer = new BufferedWriter(
-                             new OutputStreamWriter
-                                     (socket.getOutputStream()));
-                     BufferedReader reader = new BufferedReader(
-                             new InputStreamReader(
-                                     socket.getInputStream()
-                             )
-                     )) {
-                    System.out.println("Connected to server");
 
-                    String request = "Hi, server! My name is client" + count.getAndIncrement();
+        //todo сделать возможным переписку
+
+        // for (int i = 0; i < 5; i++) {
+        new Thread(() -> {
+            try (Socket socket = new Socket("localhost", getPort());
+                 PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+                 BufferedReader reader = new BufferedReader(
+                         new InputStreamReader(
+                                 socket.getInputStream()
+                         )
+                 )) {
+                System.out.println("Connected to server");
+                System.out.println("Введите ваш никнейм для участия в чате: ");
+
+                Scanner scanner = new Scanner(System.in);
+
+                System.out.println(socket.isClosed());
+
+                while (!socket.isClosed()) {
+                String request = scanner.nextLine();
+
+                if (!request.equals("")) {
                     System.out.println("Request = " + request);
 
-                    writer.write(request);
-                    writer.newLine();
+                    writer.println(request);
                     writer.flush();
+                }
+
 
                     String response = reader.readLine();
                     System.out.println("Response = " + response);
-
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    // Thread.sleep(4000);
                 }
-            }).start();
-        }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
+    //  }
 
     public static int getPort() {
         int port = 0;
